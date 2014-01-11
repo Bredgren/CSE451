@@ -25,6 +25,13 @@ queue* queue_create() {
   return q;
 }
 
+// Lets the user clean up to prevent memory leaks.
+void queue_destroy(queue* q) {
+  queue_element* elem;
+  while (queue_remove(q, &elem)) {}
+  free(q);
+}
+
 /* Private */
 static queue_link* queue_new_element(queue_element* elem) {
   queue_link* ql = (queue_link*) malloc(sizeof(queue_link));
@@ -39,7 +46,7 @@ void queue_append(queue* q, queue_element* elem) {
   assert(q != NULL);
 
   // Need to handle the case where the queue is empty.
-  if (q->head == NULL) {
+  if (queue_is_empty(q)) {
     q->head = queue_new_element(elem);
   } else {
     // Find the last link in the queue.
@@ -63,6 +70,9 @@ bool queue_remove(queue* q, queue_element** elem_ptr) {
   *elem_ptr = q->head->elem;
   old_head = q->head;
   q->head = q->head->next;
+
+  // Prevents leaking memory.
+  free(old_head);
 
   return true;
 }
@@ -98,3 +108,15 @@ bool queue_apply(queue* q, queue_function qf, queue_function_args* args) {
 
   return true;
 }
+
+/* /\* */
+/*  * Reverses the elements on the queue in place. */
+/*  *\/ */
+/* void queue_reverse(queue* q); */
+
+/* // Compare the given two elements of the queue. queue_compare functions */
+/* // should return -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2. */
+/* typedef int (*queue_compare)(queue_element* /\* e1* *\/, queue_element* /\* e2* *\/);  // NOLINT */
+
+/* // Sorts the elements of the given queue in place. */
+/* void queue_sort(queue* q, queue_compare qc); */

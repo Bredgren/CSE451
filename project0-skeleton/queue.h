@@ -18,6 +18,11 @@ typedef void queue_element;
 queue* queue_create();
 
 /*
+ * Clears the queue and frees the used memory.
+ */
+void queue_destroy(queue* q);
+
+/*
  * Appends an element to the end of the queue.
  */
 void queue_append(queue* q, queue_element* elem);
@@ -60,11 +65,11 @@ size_t queue_size(queue* q);
    void bar() {
      queue* q = queue_new();
      if (!q) error();
-  
+
      for (int i = 0; i < 10; i++) {
        queue_append(q, q);
      }
-  
+
      size_t count = 0;
      queue_apply(q, count_elements, &count);
      printf("Queue size is %d\n", x);
