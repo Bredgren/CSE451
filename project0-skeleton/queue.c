@@ -38,12 +38,17 @@ static queue_link* queue_new_element(queue_element* elem) {
 void queue_append(queue* q, queue_element* elem) {
   assert(q != NULL);
 
-  // Find the last link in the queue.
-  queue_link* cur;
-  for (cur = q->head; cur->next; cur = cur->next) {}
+  // Need to handle the case where the queue is empty.
+  if (q->head == NULL) {
+    q->head = queue_new_element(elem);
+  } else {
+    // Find the last link in the queue.
+    queue_link* cur;
+    for (cur = q->head; cur->next; cur = cur->next) {}
 
-  // Append the new link.
-  cur->next = queue_new_element(elem);
+    // Append the new link.
+    cur->next = queue_new_element(elem);
+  }
 }
 
 bool queue_remove(queue* q, queue_element** elem_ptr) {
