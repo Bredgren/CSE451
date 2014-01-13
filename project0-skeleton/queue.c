@@ -109,14 +109,40 @@ bool queue_apply(queue* q, queue_function qf, queue_function_args* args) {
   return true;
 }
 
-/* /\* */
-/*  * Reverses the elements on the queue in place. */
-/*  *\/ */
-/* void queue_reverse(queue* q); */
+/* private */
+queue_link* get_ith(queue* q, int i, queue_link** prev) {
+  int current = 0;
+  for (queue_link* cur = q->head; cur; cur = cur->next) {
+    if (current == i)
+      return cur;
 
-/* // Compare the given two elements of the queue. queue_compare functions */
-/* // should return -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2. */
-/* typedef int (*queue_compare)(queue_element* /\* e1* *\/, queue_element* /\* e2* *\/);  // NOLINT */
+    current++;
+    *prev = cur;
+  }
+  return NULL; // i >= q length
+}
 
-/* // Sorts the elements of the given queue in place. */
-/* void queue_sort(queue* q, queue_compare qc); */
+void queue_reverse(queue* q) {
+  assert(q != NULL);
+
+  // Trivial cases
+  if (queue_is_empty(q) || queue_size(q) == 0)
+    return;
+
+  // for i = 1 to q length: move ith element to front
+  for (int i = 1; i < queue_size(q); ++i) {
+    queue_link* prev_ith;
+    queue_link* ith = get_ith(q, i, &prev_ith);
+    prev_ith->next = ith->next;
+    ith->next = q->head;
+    q->head = ith;
+  }
+}
+
+/* // Compare the given two elements of the queue. queue_compare functions
+ // should return -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.
+ typedef int (*queue_compare)(queue_element* e1, queue_element* e2); */
+
+void queue_sort(queue* q, queue_compare qc) {
+  // insertion sort
+}

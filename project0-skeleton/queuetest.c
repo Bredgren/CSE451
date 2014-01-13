@@ -191,18 +191,22 @@ void test_reverse(int* errors) {
   int y = 1;
   int z = 2;
   confirm_append(q, &x, 1, location, errors);
+  queue_reverse(q);
   queue_element* expected1[] = {&x};
   confirm_order(q, expected1, location, errors);
 
   confirm_append(q, &y, 2, location, errors);
+  queue_reverse(q);
   queue_element* expected2[] = {&y, &x};
   confirm_order(q, expected2, location, errors);
 
   confirm_append(q, &z, 3, location, errors);
+  queue_reverse(q);
   queue_element* expected3[] = {&z, &x, &y};
   confirm_order(q, expected3, location, errors);
 
   confirm_append(q, &x, 4, location, errors);
+  queue_reverse(q);
   queue_element* expected4[] = {&x, &y, &x, &z};
   confirm_order(q, expected4, location, errors);
 
