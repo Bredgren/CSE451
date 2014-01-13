@@ -126,7 +126,7 @@ void queue_reverse(queue* q) {
   assert(q != NULL);
 
   // Trivial cases
-  if (queue_is_empty(q) || queue_size(q) == 0)
+  if (queue_is_empty(q) || queue_size(q) <= 1)
     return;
 
   // for i = 1 to q length: move ith element to front
@@ -144,5 +144,8 @@ void queue_reverse(queue* q) {
  typedef int (*queue_compare)(queue_element* e1, queue_element* e2); */
 
 void queue_sort(queue* q, queue_compare qc) {
-  // insertion sort
+  /* assert(q != NULL); */
+  /* // insertion sort */
+  /* queue_link* unsorted_head = q->head; */
+  /* while (unsorted_head != NULL */
 }
