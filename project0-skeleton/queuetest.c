@@ -186,6 +186,9 @@ void test_reverse(int* errors) {
   queue* q = queue_create();
 
   confirm_size(q, 0, location, errors);
+  queue_reverse(q);
+  queue_element* expected0[] = {};
+  confirm_order(q, expected0, location, errors);
 
   int x = 0;
   int y = 1;
@@ -214,6 +217,52 @@ void test_reverse(int* errors) {
   q = NULL;
 }
 
+int compare(queue_element* e1, queue_element* e2) {
+  if (e1 < e2)
+    return -1;
+  else if (e1 > e2)
+    return 1;
+  else
+    return 0;
+}
+
+void test_sort(int* errors) {
+  char* location = "test_sort";
+
+  queue* q = queue_create();
+
+  confirm_size(q, 0, location, errors);
+  queue_sort(q, &compare);
+  queue_element* expected0[] = {};
+  confirm_order(q, expected0, location, errors);
+
+  int x = 0;
+  int y = 1;
+  int z = 2;
+  confirm_append(q, &x, 1, location, errors);
+  queue_sort(q, &compare);
+  queue_element* expected1[] = {&x};
+  confirm_order(q, expected1, location, errors);
+
+  confirm_append(q, &y, 2, location, errors);
+  queue_sort(q, &compare);
+  queue_element* expected2[] = {&x, &y};
+  confirm_order(q, expected2, location, errors);
+
+  confirm_append(q, &z, 3, location, errors);
+  queue_sort(q, &compare);
+  queue_element* expected3[] = {&x, &y, &z};
+  confirm_order(q, expected3, location, errors);
+
+  confirm_append(q, &x, 4, location, errors);
+  queue_sort(q, &compare);
+  queue_element* expected4[] = {&x, &x, &y, &z};
+  confirm_order(q, expected4, location, errors);
+
+  queue_destroy(q);
+  q = NULL;
+}
+
 int main(int argc, char* argv[]) {
   int errors = 0;
 
@@ -221,6 +270,7 @@ int main(int argc, char* argv[]) {
   test_remove(&errors);
   test_is_empty(&errors);
   test_reverse(&errors);
+  test_sort(&errors);
 
   if (errors == 0)
     printf("All tests passed\n");
