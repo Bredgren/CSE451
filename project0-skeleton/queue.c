@@ -184,6 +184,7 @@ void queue_sort(queue* q, queue_compare qc) {
     prev_largest = absolute_largest;
     queue_link* next_largest = get_largest(unsorted_head, qc, &prev_largest);
 
+    // We find out the largest on the first time through
     if (update_absolute_largest) {
       absolute_largest = next_largest;
       update_absolute_largest = false;
