@@ -119,6 +119,7 @@ queue_link* get_ith(queue* q, int i, queue_link** prev) {
     current++;
     *prev = cur;
   }
+
   return NULL; // i >= q length
 }
 
@@ -133,19 +134,70 @@ void queue_reverse(queue* q) {
   for (int i = 1; i < queue_size(q); ++i) {
     queue_link* prev_ith;
     queue_link* ith = get_ith(q, i, &prev_ith);
+    // All ith nodes have a prev because we start from i = 1
     prev_ith->next = ith->next;
     ith->next = q->head;
     q->head = ith;
   }
 }
 
-/* // Compare the given two elements of the queue. queue_compare functions
- // should return -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.
- typedef int (*queue_compare)(queue_element* e1, queue_element* e2); */
+/* private */
+// If start is the largest then prev will be unchanged
+queue_link* get_largest(queue_link* start, queue_compare qc,
+                        queue_link** prev) {
+  // cur_prev is always the node before cur,
+  // prev is always the node before largest
+  queue_link* largest = start;
+  queue_link* cur_prev = *prev;
+  for (queue_link* cur = start; cur; cur = cur->next) {
+    if (qc(cur->elem, largest->elem) == 1) {
+      largest = cur;
+      *prev = cur_prev;
+    }
+
+    cur_prev = cur;
+  }
+
+  return largest;
+}
 
 void queue_sort(queue* q, queue_compare qc) {
-  /* assert(q != NULL); */
-  /* // insertion sort */
-  /* queue_link* unsorted_head = q->head; */
-  /* while (unsorted_head != NULL */
+  assert(q != NULL);
+
+  // Trivial cases
+  if (queue_is_empty(q) || queue_size(q) <= 1)
+    return;
+
+  // insertion sort - move 'largest' elements to front from unsorted section
+  queue_link* unsorted_head = q->head;
+  // prev_largest is set to the node before unsorted_head prior to call to
+  // get_largest (which happens to always be the absolute largest node), and
+  // afterward is set to the node before the next_largest so that we can 'cut
+  // it out'
+  queue_link* prev_largest = NULL;
+  queue_link* absolute_largest = NULL;
+  bool update_absolute_largest = true;
+
+  while (unsorted_head != NULL) {
+    // Incase next_largest will be the same as unsorted_head, the prev_largest
+    // will be the absolute_largest
+    prev_largest = absolute_largest;
+    queue_link* next_largest = get_largest(unsorted_head, qc, &prev_largest);
+
+    if (update_absolute_largest) {
+      absolute_largest = next_largest;
+      update_absolute_largest = false;
+    }
+
+    // The largest might already be at the unsorted_start, which is the only
+    // time we advance the unsorted_head
+    if (next_largest == unsorted_head) {
+      unsorted_head = unsorted_head->next;
+    }
+
+    // Move largest to front
+    prev_largest->next = next_largest->next;
+    next_largest->next = q->head;
+    q->head = next_largest;
+  }
 }
