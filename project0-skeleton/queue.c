@@ -120,7 +120,7 @@ queue_link* get_ith(queue* q, int i, queue_link** prev) {
     *prev = cur;
   }
 
-  return NULL; // i >= q length
+  return NULL;  // i >= q length
 }
 
 void queue_reverse(queue* q) {

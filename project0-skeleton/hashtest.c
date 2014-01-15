@@ -28,7 +28,7 @@ static int hash_strcmp(const void* k1, const void* k2) {
   return strcmp((const char*) k1, (const char*) k2);
 }
 
-void confirm_insert(hash_table* ht, char *k, int64_t *v,
+void confirm_insert(hash_table* ht, char* k, int64_t* v,
                     char* exp_rk, int64_t* exp_rv,
                     char* location, int* errors) {
   char* removed_key = NULL;
@@ -38,12 +38,12 @@ void confirm_insert(hash_table* ht, char *k, int64_t *v,
   if (((removed_key == NULL || exp_rk == NULL) && removed_key != exp_rk) ||
       (removed_key != NULL && exp_rk != NULL &&
        strcmp(removed_key, exp_rk) != 0)) {
-    printf("Incorrect key removed during insert in %s: expeceted %s, got %s\n",
+    printf("Incorrect key replaced during insert in %s: expeceted '%s', "
+           "got '%s'\n",
            location, exp_rk, removed_key);
     (*errors)++;
   }
   if (*removed_value != *removed_value) {
-    printf("Inserted (%s, %" PRIi64 ")\n", k, *v);
     printf("Incorrect value replaced during insert in %s: expeceted %"
            PRIi64 ", got %" PRIi64 "\n",
            location, *exp_rv, *removed_value);
@@ -51,17 +51,17 @@ void confirm_insert(hash_table* ht, char *k, int64_t *v,
   }
 }
 
-void confirm_lookup(hash_table* ht, char *k, int64_t* exp_rv, bool exp,
+void confirm_lookup(hash_table* ht, char* k, int64_t* exp_rv, bool exp,
                     char* location, int* errors) {
   int64_t* value;
   bool result = hash_lookup(ht, k, (void**) &value);
 
   if (result != exp) {
     if (result) {
-      printf("Lookup error in %s: expeceted table to not conatin %s, "
+      printf("Lookup error in %s: expeceted table to not conatin '%s', "
              "but it did\n", location, k);
     } else {
-      printf("Lookup error in %s: expeceted table to conatin %s, "
+      printf("Lookup error in %s: expeceted table to conatin '%s', "
              "but it did not\n", location, k);
     }
     (*errors)++;
@@ -79,6 +79,53 @@ void confirm_lookup(hash_table* ht, char *k, int64_t* exp_rv, bool exp,
   (*errors)++;
 }
 
+void confirm_present(hash_table* ht, char* k, bool exp,
+                     char* location, int* errors) {
+  bool result = hash_is_present(ht, k);
+
+  if (result != exp) {
+    printf("Incorrect key presence in %s for key '%s': expeceted %d, got %d\n",
+           location, k, exp, result);
+    (*errors)++;
+  }
+}
+
+void confirm_remove(hash_table* ht,
+                    char* exp_rk, int64_t* exp_rv, bool exp,
+                    char* location, int* errors) {
+  char* removed_key;
+  int64_t* removed_value;
+  bool result = hash_remove(ht, exp_rk, (void**) &removed_key,
+                            (void**) &removed_value);
+
+  if (exp != result) {
+    if (result) {
+      printf("Remove error in %s: expeceted table to not remove '%s', "
+             "but it did\n", location, exp_rk);
+    } else {
+      printf("Lookup error in %s: expeceted table to remove '%s', "
+             "but it did not\n", location, exp_rk);
+    }
+    (*errors)++;
+  }
+
+  if (result || exp) {
+    if (((removed_key == NULL || exp_rk == NULL) && removed_key != exp_rk) ||
+        (removed_key != NULL && exp_rk != NULL &&
+         strcmp(removed_key, exp_rk) != 0)) {
+      printf("Incorrect key removed in %s: expeceted '%s', got '%s'\n",
+             location, exp_rk, removed_key);
+      (*errors)++;
+    }
+    if (*removed_value != *removed_value) {
+      printf("Incorrect value removed %s: expeceted %"
+             PRIi64 ", got %" PRIi64 "\n",
+             location, *exp_rv, *removed_value);
+      (*errors)++;
+    }
+  }
+}
+
 void test_insert(int* errors) {
   char* location = "test_insert";
 
@@ -94,6 +141,9 @@ void test_insert(int* errors) {
 
   int64_t v3 = 3;
   confirm_insert(ht, k1, &v3, k1, &v1, location, errors);
+
+  hash_destroy(ht, false, false);
+  ht = NULL;
 }
 
 void test_lookup(int* errors) {
@@ -122,25 +172,83 @@ void test_lookup(int* errors) {
 
   char* k4 = "key4";
   confirm_lookup(ht, k4, NULL, false, location, errors);
+
+  hash_destroy(ht, false, false);
+  ht = NULL;
 }
 
 void test_present(int* errors) {
-  // Check for empty table
-  // Add a few values
-  // Check for added values
-  // Check for value that wasn't added
+  char* location = "test_lookup";
+
+  hash_table* ht = hash_create(hash_fn, hash_strcmp);
+
+  char* k0 = "key0";
+  confirm_present(ht, k0, false, location, errors);
+
+  char* k1 = "key1";
+  int64_t v1 = 1;
+  confirm_insert(ht, k1, &v1, NULL, NULL, location, errors);
+
+  char* k2 = "key2";
+  int64_t v2 = 2;
+  confirm_insert(ht, k2, &v2, NULL, NULL, location, errors);
+
+  char* k3 = "key3";
+  int64_t v3 = 3;
+  confirm_insert(ht, k3, &v3, NULL, NULL, location, errors);
+
+  confirm_present(ht, k1, true, location, errors);
+  confirm_present(ht, k2, true, location, errors);
+  confirm_present(ht, k3, true, location, errors);
+
+  char* k4 = "key4";
+  confirm_present(ht, k4, false, location, errors);
+
+  hash_destroy(ht, false, false);
+  ht = NULL;
 }
 
 void test_remove(int* errors) {
-  // Check for empty table
-  // Add one item and check
-  // Add two items and check between each remove
+  char* location = "test_remove";
+
+  hash_table* ht = hash_create(hash_fn, hash_strcmp);
+
+  char* k0 = "key0";
+  confirm_remove(ht, k0, NULL, false, location, errors);
+
+  char* k1 = "key1";
+  int64_t v1 = 1;
+  confirm_insert(ht, k1, &v1, NULL, NULL, location, errors);
+  confirm_remove(ht, k1, &v1, true, location, errors);
+
+  char* k2 = "key2";
+  int64_t v2 = 2;
+  confirm_insert(ht, k1, &v1, NULL, NULL, location, errors);
+  confirm_insert(ht, k2, &v2, NULL, NULL, location, errors);
+  confirm_remove(ht, k1, &v1, true, location, errors);
+  confirm_remove(ht, k2, &v2, true, location, errors);
+
+  confirm_remove(ht, k2, &v2, false, location, errors);
+
+  hash_destroy(ht, false, false);
+  ht = NULL;
 }
 
 void test_destroy(int* errors) {
-  // Add stack values and destroy
   // Add malloced values and destroy
   // Let valgrind check memory
+  char* location = "test_destroy";
+
+  hash_table* ht = hash_create(hash_fn, hash_strcmp);
+
+  char* k1 = (char*) malloc(kBufferLength);
+  k1 = "key1";
+  int64_t* v1 = (int64_t*) malloc(sizeof(int64_t));
+  *v1 = 1;
+  confirm_insert(ht, k1, v1, NULL, NULL, location, errors);
+
+  hash_destroy(ht, true, true);
+  ht = NULL;
 }
 
 int main(int argc, char* argv[]) {
@@ -148,9 +256,9 @@ int main(int argc, char* argv[]) {
 
   test_insert(&errors);
   test_lookup(&errors);
-  /* test_present(&errors); */
-  /* test_remove(&errors); */
-  /* test_destroy(&errors); */
+  test_present(&errors);
+  test_remove(&errors);
+  test_destroy(&errors);
 
   if (errors == 0)
     printf("All tests passed\n");
