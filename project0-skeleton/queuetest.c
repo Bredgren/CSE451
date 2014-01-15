@@ -103,16 +103,6 @@ void test_append(int* errors) {
   confirm_append(q, &z, 3, location, errors);
   confirm_append(q, &x, 4, location, errors);
 
-  // Check the queue's order
-  /* order expected_order; */
-  /* expected_order.index = 0; */
-  /* queue_element* expected[] = {&x, &y, &z, &x}; */
-  /* expected_order.expected = expected; */
-  /* expected_order.location = location; */
-  /* expected_order.errors = errors; */
-
-  /* queue_apply(q, confirm_order, &expected_order); */
-
   queue_element* expected[] = {&x, &y, &z, &x};
   confirm_order(q, expected, location, errors);
 
