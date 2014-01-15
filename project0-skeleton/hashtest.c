@@ -265,67 +265,68 @@ int main(int argc, char* argv[]) {
   else
     printf("\nTests done with %d error(s)\n", errors);
 
-  /* /\* Check for correct invocation: *\/ */
-  /* if (argc != 2) { */
-  /*   printf("Usage: %s <N>\n" */
-  /*       "Run test inserting a total of N items\n", argv[0]); */
-  /*   return 1; */
-  /* } */
-  /* int N = atoi(argv[1]); */
-  /* if (N <= 0 || N > kMaxInsertions) { */
-  /*   N = kMaxInsertions; */
-  /* } */
+  if (argc >= 2) {
+    /* Check for correct invocation: */
+    if (argc != 2) {
+      printf("Usage: %s <N>\n"
+             "Run test inserting a total of N items\n", argv[0]);
+      return 1;
+    }
+    int N = atoi(argv[1]);
+    if (N <= 0 || N > kMaxInsertions) {
+      N = kMaxInsertions;
+    }
 
-  /* /\* Create the hash table. *\/ */
-  /* hash_table* ht = hash_create(hash_fn, hash_strcmp); */
+    /* Create the hash table. */
+    hash_table* ht = hash_create(hash_fn, hash_strcmp);
 
-  /* /\* First phase: insert some data. *\/ */
-  /* printf("\nInsert phase:\n"); */
-  /* char* k; */
-  /* int64_t* v; */
-  /* char* removed_key = NULL; */
-  /* int64_t* removed_value = NULL; */
-  /* for (int i = 0; i < N * 2; i++) { */
-  /*   k = (char*) malloc(kBufferLength); */
-  /*   snprintf(k, kBufferLength, "String %d", i % N); */
-  /*   v = (int64_t*) malloc(sizeof(int64_t)); */
-  /*   *v = i; */
-  /*   // The hash map takes ownership of the key and value: */
-  /*   hash_insert(ht, k, v, (void**) &removed_key, (void**) &removed_value); */
-  /*   if (removed_value != NULL) { */
-  /*     printf("Replaced (%s, %" PRIi64 ") while inserting (%s, %" PRIi64 ")\n", */
-  /*            removed_key, *removed_value, k, *v); */
-  /*     free(removed_key); */
-  /*     free(removed_value); */
-  /*   } else { */
-  /*     printf("Inserted (%s, %" PRIi64 ")\n", k, *v); */
-  /*   } */
-  /* } */
+    /* First phase: insert some data. */
+    printf("\nInsert phase:\n");
+    char* k;
+    int64_t* v;
+    char* removed_key = NULL;
+    int64_t* removed_value = NULL;
+    for (int i = 0; i < N * 2; i++) {
+      k = (char*) malloc(kBufferLength);
+      snprintf(k, kBufferLength, "String %d", i % N);
+      v = (int64_t*) malloc(sizeof(int64_t));
+      *v = i;
+      // The hash map takes ownership of the key and value:
+      hash_insert(ht, k, v, (void**) &removed_key, (void**) &removed_value);
+      if (removed_value != NULL) {
+        printf("Replaced (%s, %" PRIi64 ") while inserting (%s, %" PRIi64 ")\n",
+               removed_key, *removed_value, k, *v);
+        free(removed_key);
+        free(removed_value);
+      } else {
+        printf("Inserted (%s, %" PRIi64 ")\n", k, *v);
+      }
+    }
 
-  /* /\* Second phase: look up some data. *\/ */
-  /* printf("\nLookup phase:\n"); */
-  /* char strbuf[kBufferLength]; */
-  /* for (int i = N - 1; i >= 0; i--) { */
-  /*   snprintf(strbuf, kBufferLength, "String %d", i); */
-  /*   if (!hash_lookup(ht, strbuf, (void**) &v)) { */
-  /*     printf("Entry for %s not found\n", strbuf); */
-  /*   } else { */
-  /*     printf("%s -> %" PRIi64 "\n", strbuf, *v); */
-  /*   } */
-  /* } */
+    /* Second phase: look up some data. */
+    printf("\nLookup phase:\n");
+    char strbuf[kBufferLength];
+    for (int i = N - 1; i >= 0; i--) {
+      snprintf(strbuf, kBufferLength, "String %d", i);
+      if (!hash_lookup(ht, strbuf, (void**) &v)) {
+        printf("Entry for %s not found\n", strbuf);
+      } else {
+        printf("%s -> %" PRIi64 "\n", strbuf, *v);
+      }
+    }
 
-  /* /\* Look up a key that hasn't been inserted: *\/ */
-  /* if (!hash_lookup(ht, kNotFoundKey, (void**) &v)) { */
-  /*   printf("Lookup of \"%s\" failed (as expected)\n", kNotFoundKey); */
-  /* } else { */
-  /*   printf("%s -> %" PRIi64 " (unexpected!)\n", kNotFoundKey, *v); */
-  /* } */
+    /* Look up a key that hasn't been inserted: */
+    if (!hash_lookup(ht, kNotFoundKey, (void**) &v)) {
+      printf("Lookup of \"%s\" failed (as expected)\n", kNotFoundKey);
+    } else {
+      printf("%s -> %" PRIi64 " (unexpected!)\n", kNotFoundKey, *v);
+    }
 
-  /* /\* Destroy the hash table and free things that we've allocated. Because */
-  /*  * we allocated both the keys and the values, we instruct the hash map */
-  /*  * to free both. */
-  /*  *\/ */
-  /* hash_destroy(ht, true, true); */
-
+    /* Destroy the hash table and free things that we've allocated. Because
+     * we allocated both the keys and the values, we instruct the hash map
+     * to free both.
+     */
+    hash_destroy(ht, true, true);
+  }
   return 0;
 }
