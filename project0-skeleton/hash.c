@@ -17,16 +17,20 @@ struct _hash_table {
   int num_buckets;
   hash_hasher hasher;
   hash_compare compare;
-  hash_entry* buckets;
+  hash_entry** buckets;
 };
 
 static const int kDefaultSize = 32;
 
 hash_table* hash_create(hash_hasher h, hash_compare c) {
-  hash_entry* buckets = (hash_entry*) malloc(sizeof(hash_entry) * kDefaultSize);
+  int size = sizeof(hash_entry);
+  // Without calloc old tables are 'resurected' with bogus values. Example:
+  // the second table my tests make aleady had an entry with 'key1' but didn't
+  // have 1 as a value.
+  hash_entry** buckets = (hash_entry**) calloc(kDefaultSize, size);
   hash_table* ht = (hash_table*) malloc(sizeof(hash_table));
 
-  ht->num_buckets = 0;
+  ht->num_buckets = kDefaultSize;
   ht->buckets = buckets;
   ht->hasher = h;
   ht->compare = c;
@@ -35,14 +39,29 @@ hash_table* hash_create(hash_hasher h, hash_compare c) {
 }
 
 /* Private */
-int _get_bucket(hash_table* ht, const void* key) {
-  return ht->hasher(key) % ht->num_buckets;
+/* Returns a pointer to the first entry in the bucket that the given key
+   belongs to, also sets bucket_num to be the number of the bucket. */
+hash_entry*  _get_bucket(hash_table* ht, const void* key, int* bucket_num) {
+  *bucket_num = ht->hasher(key) % ht->num_buckets;
+  return ht->buckets[*bucket_num];
 }
 
 /* Private */
+/* Returns a pointer to the entry whose key matches the given one, it also
+   sets prev to be the entry before the returned one (*prev->next = returned),
+   so it will be NULL if there are 0 or 1 entries in the bucket it came from. */
 hash_entry* _find_entry(hash_table* ht, const void* key, hash_entry** prev) {
-  // TODO
-  return NULL
+  int num;
+  hash_entry* bucket = _get_bucket(ht, key, &num);
+  *prev = NULL;
+
+  for (; bucket != NULL; bucket = bucket->next) {
+    if (ht->compare(bucket->key, key) == 0)
+      return bucket;
+    *prev = bucket;
+  }
+
+  return NULL;
 }
 
 void hash_insert(hash_table* ht, void* key, void* value,
@@ -52,38 +71,32 @@ void hash_insert(hash_table* ht, void* key, void* value,
   if (hash_is_present(ht, key)) {
 
   } else {
-    int bucket_num = _get_bucket(ht, key);
-    hash_entry* bucket = &ht->buckets[bucket_num];
+    int bucket_num;
+    hash_entry* bucket = _get_bucket(ht, key, &bucket_num);
 
     hash_entry* new_entry = (hash_entry*) malloc(sizeof(hash_entry));
     new_entry->key = key;
     new_entry->value = value;
 
-      if (bucket == NULL) {
-        bucket = new_entry;
-      } else {
-        // Just add it to the front
-        new_entry->next = bucket;
-        bucket = new_entry;
-      }
+    // Just add it to the front
+    if (bucket != NULL) {
+      new_entry->next = bucket;
+    }
+    ht->buckets[bucket_num] = new_entry;
   }
 }
 
 bool hash_lookup(hash_table* ht, const void* key, void** value_ptr) {
   hash_entry* prev;
   hash_entry* entry = _find_entry(ht, key, &prev);
-  *value_ptr = entry->value;
+  if (entry != NULL)
+    *value_ptr = entry->value;
   return entry != NULL;
 }
 
 bool hash_is_present(hash_table* ht, const void* key) {
-  int bucket_num = _get_bucket(ht, key);
-  hash_entry* bucket = &ht->buckets[bucket_num];
-
-  // TODO
-  // iterate over bucket to see if key is there
-
-  return false;
+  void* v;
+  return hash_lookup(ht, key, &v);
 }
 
 bool hash_remove(hash_table* ht, const void* key,

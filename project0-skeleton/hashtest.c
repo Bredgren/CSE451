@@ -71,12 +71,13 @@ void confirm_lookup(hash_table* ht, char* k, int64_t* exp_rv, bool exp,
     if (value == NULL) {
       printf("Lookup error in %s: expeceted %" PRIi64 ", got (null)\n",
              location, *exp_rv);
+      (*errors)++;
     } else if (*value != *exp_rv) {
       printf("Lookup error in %s: expeceted %" PRIi64 ", got %" PRIi64 "\n",
              location, *exp_rv, *value);
+      (*errors)++;
     }
   }
-  (*errors)++;
 }
 
 void confirm_present(hash_table* ht, char* k, bool exp,
@@ -103,7 +104,7 @@ void confirm_remove(hash_table* ht,
       printf("Remove error in %s: expeceted table to not remove '%s', "
              "but it did\n", location, exp_rk);
     } else {
-      printf("Lookup error in %s: expeceted table to remove '%s', "
+      printf("Remove error in %s: expeceted table to remove '%s', "
              "but it did not\n", location, exp_rk);
     }
     (*errors)++;
@@ -156,6 +157,8 @@ void test_lookup(int* errors) {
 
   char* k1 = "key1";
   int64_t v1 = 1;
+  // old entries? I was getting this lookup to fail because 'key1' existed.
+  confirm_lookup(ht, k1, NULL, false, location, errors);
   confirm_insert(ht, k1, &v1, NULL, NULL, location, errors);
 
   char* k2 = "key2";
