@@ -18,8 +18,17 @@ struct _queue {
   queue_link* head;
 };
 
+/* Private */
+void _check_alloc(void* ptr) {
+  if (ptr == NULL) {
+    printf("Memory Error\n");
+    exit(1);
+  }
+}
+
 queue* queue_create() {
   queue* q = (queue*) malloc(sizeof(queue));
+  _check_alloc(q);
 
   q->head = NULL;
   return q;
@@ -35,6 +44,7 @@ void queue_destroy(queue* q) {
 /* Private */
 static queue_link* queue_new_element(queue_element* elem) {
   queue_link* ql = (queue_link*) malloc(sizeof(queue_link));
+  _check_alloc(ql);
 
   ql->elem = elem;
   ql->next = NULL;

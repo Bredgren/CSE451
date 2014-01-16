@@ -91,6 +91,7 @@ void confirm_present(hash_table* ht, char* k, bool exp,
   }
 }
 
+/* Tests remove for stack allocated entries */
 void confirm_remove(hash_table* ht,
                     char* exp_rk, int64_t* exp_rv, bool exp,
                     char* location, int* errors) {
@@ -245,7 +246,7 @@ void test_destroy(int* errors) {
   hash_table* ht = hash_create(hash_fn, hash_strcmp);
 
   char* k1 = (char*) malloc(kBufferLength);
-  k1 = "key1";
+  snprintf(k1, kBufferLength, "key%d", 1);
   int64_t* v1 = (int64_t*) malloc(sizeof(int64_t));
   *v1 = 1;
   confirm_insert(ht, k1, v1, NULL, NULL, location, errors);
